@@ -3,8 +3,8 @@ BASE_OBJS = main.o
 SRC_PATH = source
 
 OBJS = $(addprefix $(SRC_PATH)/, $(BASE_OBJS))
-CXX = g++
-CXXFLAGS = -g -Iinclude
+CXX = g++ -std=c++17
+CXXFLAGS = -g -Iinclude -Wall -Wextra
 LDFLAGS =
 LDLIBS =
 
@@ -13,3 +13,4 @@ Segment: $(OBJS)
 
 clean:
 	rm $(OBJS)
+	rm Segment.o

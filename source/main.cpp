@@ -1,6 +1,9 @@
-#include <boost/gil.hpp>
 
-int main(int argc, char** argv)
+
+const char *image = "resources/testimage.jpg";
+const char *output = "resources/testimage_out.jpg";
+
+int main()
 {
 
     return 0;
