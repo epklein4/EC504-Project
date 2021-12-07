@@ -14,3 +14,4 @@ Segment: $(OBJS)
 clean:
 	rm $(OBJS)
 	rm Segment
+	rm *.txt
