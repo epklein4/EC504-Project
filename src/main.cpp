@@ -20,7 +20,7 @@ typedef struct Queue
 Queue * createQueue(int maxElements);
 void Enqueue(Queue *Q,int element);
 int Dequeue(Queue *Q);
-int * BFS(Queue *Q, int *Found, int *FirstVertex, int V, int *edgeList,int E);
+int * BFS(int *FirstVertex, int V, int *edgeList,int E, vector<int>& space);
 void PrintAdjacencyListFormat( int *FirstVertex, int V, int *EdgeList,int E);
 vector<vector<int>> backtrace(int node, int * parent);
 vector<int> edgePath(vector<int>& pathInfo, int * FV, int * edgeList);
@@ -33,6 +33,7 @@ void printQ(Queue * Q);
 vector<vector<Point>> bgfgNull(2);
 bool bgSet, fgSet, flag;
 int sizeBG, sizeFG;
+bool success;
 
 int main()
 {
@@ -175,9 +176,6 @@ int main()
     int * foundTemp = new int[N + 2];
     fill_n(foundTemp, (N+2), -1);
 
-    int * Found = new int[N + 2];
-    fill_n(Found, (N+2), -1);
-
     edgeList[edgeListIndexBack] = -1;
     edgeListIndexBack--;
 
@@ -307,16 +305,9 @@ ofstream EdgeList("EdgeList.txt");
         }
 EdgeList.close();
 
-Queue * Q = createQueue(V);
-
-int source = 0;
-Enqueue(Q, source); //push into quene and set found.
-Found[source] = 1;
-
 vector<int> flow;
 vector<int> Cap;
 vector<int> Space;
-vector<vector<int>> flowCapSpace;
 
 for (int i = 0; i < sizeEdgeList; i++)
     {
@@ -324,60 +315,56 @@ for (int i = 0; i < sizeEdgeList; i++)
         Space.push_back(edgeCap[i]);
         flow.push_back(0);
     }
-flowCapSpace.push_back(flow);
-flowCapSpace.push_back(Cap);
-flowCapSpace.push_back(Space);
 
-int * parentOut = BFS( Q,  Found, FV, V, edgeList, E);
+vector<int> tempFlow;
+vector<int> tempCap;
+vector<int> tempSpace;
+vector<vector<int>> pathInfo;
+vector<int> edgesOut;
+int minSpace;
+int * parentOut;
 
-cout << "BFS ran successfully!!!" << endl;
+///////////////////while possible,
+while (true) {
+        cout << "debug 1" << endl;
+parentOut = BFS(FV, V, edgeList, E, Space);
+if (success == false) {
+    break;
+}
 
-cout << "ParentOut: " << endl;
-for (int i = 0; i < V; i++) {
-    cout << i << ": " << parentOut[i] << endl;
-    }
-cout << endl;
-
-vector<vector<int>> pathInfo = backtrace(sinkInd, parentOut);
-
-cout << "backtrace ran successfully!!!" << endl;
-
-
-cout << "Path Size: " << pathInfo[1][0] << endl;
-cout << "Path: " << endl;
-for(int i=0; i < pathInfo[0].size(); i++) {
-    cout << pathInfo[0][i] << endl;
-    }
-
-vector<int> edgesOut = edgePath(pathInfo[0], FV, edgeList);
-
-vector<int> newFlow;
-vector<int> newCap;
-vector<int> newSpace;
+pathInfo = backtrace(sinkInd, parentOut);
+edgesOut = edgePath(pathInfo[0], FV, edgeList);
 
 for(int i=0; i < edgesOut.size(); i++) {
     cout << "Edge: " << edgesOut[i] << ", ";
-    newFlow.push_back(flow[edgesOut[i]]);
+    tempFlow.push_back(flow[edgesOut[i]]);
     cout << "Flow: " << flow[edgesOut[i]] << ", ";
-    newCap.push_back(Cap[edgesOut[i]]);
+    tempCap.push_back(Cap[edgesOut[i]]);
     cout << "Cap: " << Cap[edgesOut[i]] << ", ";
-    newSpace.push_back(Space[edgesOut[i]]);
-    cout << "Space: " << Space[edgesOut[i]] << endl;
+    tempSpace.push_back(Space[edgesOut[i]]);
+    cout << "Space: " << Space[edgesOut[i]] << endl << endl;
     }
 
-//int minCap = *min_element(newCap.begin(), newCap.end());
-int minSpace =*min_element(newSpace.begin(), newSpace.end());
+minSpace =*min_element(tempSpace.begin(), tempSpace.end());
 
 for(int i=0; i < edgesOut.size(); i++) {
-    cout << "Edge: " << edgesOut[i] << ", ";
+    cout << "Update -- Edge: " << edgesOut[i] << ", ";
     flow[edgesOut[i]] = flow[edgesOut[i]] + minSpace;
     cout << "Flow: " << flow[edgesOut[i]] << ", ";
     cout << "Cap: " << Cap[edgesOut[i]] << ", ";
     Space[edgesOut[i]] = Space[edgesOut[i]] - minSpace;
-    cout << "Space: " << Space[edgesOut[i]] << endl;
+    cout << "Space: " << Space[edgesOut[i]] << endl << endl;
     }
 
+tempFlow.clear();
+tempCap.clear();
+tempSpace.clear();
+pathInfo.clear();
+edgesOut.clear();
+}
+/////////////////////
 
+cout << "debug 2" << endl;
 
 return 0;
 
@@ -450,37 +437,45 @@ void printMatDouble(Mat * myMat) {
     return;
 }
 
-int * BFS(Queue * Q, int * Found, int * FirstVertex, int V, int * EdgeList, int E) {
+int * BFS(int * FirstVertex, int V, int * EdgeList, int E, vector<int>& space) {
+
+    success = false;
+
+    Queue * Q = createQueue(V);
+    int source = 0;
+
+    int * Found = new int[V];
+    fill_n(Found, V, -1);
+
+    Enqueue(Q, source); //push into quene and set found.
+    Found[source] = 1;
+
     int node;
     static int CountDequeue = 0;
-    int debugCtr = 0;
+
     int * parent = new int[V];
     fill_n(parent, V, -1);
 
-    while((Q->size > 0) && (node != 101))
-    {
-        printQ(Q);
+    while((Q->size > 0) && (node != 101)) {
         node = Dequeue(Q);
         if (node == 101) {
+            success = true;
             break;
         }
         CountDequeue++;
 
         //Put children in Q
-        cout << "FV from " << FirstVertex[node] << " to " << FirstVertex[node + 1] << endl;
+        //cout << "FV from " << FirstVertex[node] << " to " << FirstVertex[node + 1] << endl;
         for(int i = FirstVertex[node]; i < FirstVertex[node +1]; i++)
             {
-            printQ(Q);
-            if(Found[EdgeList[i]] == -1)
+            if((Found[EdgeList[i]] == -1) && (space[i] > 0))
                 {
-                cout << " Found new, " << EdgeList[i] << " at " << i << endl;
+                //cout << " Found new, " << EdgeList[i] << " at " << i << endl;
                 Enqueue(Q,EdgeList[i]);
-                printQ(Q);
                 Found[EdgeList[i]] = 1;
                 parent[EdgeList[i]] = node;
                 }
             }
-
     }
     return parent;
 }
@@ -592,15 +587,15 @@ vector<int> edgesOut;
 
 for (int i = (pathInfo.size() - 1); i > 0 ; i--)
 {
-    cout << "i = " << i << " > " << "0" << endl;
+    //cout << "i = " << i << " > " << "0" << endl;
 	int j = pathInfo[i];
-	cout << "j = " << j << endl;
+	//cout << "j = " << j << endl;
 	for (int k = FV[j]; k < FV[j+1]; k++)
 		{
-		    cout << "k = " << k << " < " << FV[j+1] << endl;
+		    //cout << "k = " << k << " < " << FV[j+1] << endl;
 			if (edgeList[k] == pathInfo[i-1])
 			{
-			    cout << "Edge " << k << " == " << (pathInfo[i-1]) << endl;
+			    //cout << "Edge " << k << " == " << (pathInfo[i-1]) << endl;
 				edgesOut.push_back(k);
 				break;
 			}
