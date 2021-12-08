@@ -23,6 +23,7 @@ int Dequeue(Queue *Q);
 int * BFS(Queue *Q, int *Found, int *FirstVertex, int V, int *edgeList,int E);
 void PrintAdjacencyListFormat( int *FirstVertex, int V, int *EdgeList,int E);
 vector<vector<int>> backtrace(int node, int * parent);
+vector<int> edgePath(vector<int>& pathInfo, int * FV, int * edgeList);
 
 void CallBackFunc(int event, int x, int y, int flags, void* userdata);
 void printMat(Mat * myMat);
@@ -201,7 +202,7 @@ int main()
         int y = (bgfgNull[0][i]).y;
         int index = (int) ((y * newWidth) + x);
         edgeList[edgeListIndexFront] = index + 1;
-        edgeCap[i] = 1;
+        edgeCap[i] = 100;
         edgeListIndexFront++;
         }
 
@@ -248,7 +249,7 @@ ofstream adjMatOut("adjMat.txt");
 
                 if (it != sinkIndList.end()) {
                     edgeList[edgeListIndexBack] = 101;
-                    edgeCap[edgeListIndexBack] = 1;
+                    edgeCap[edgeListIndexBack] = 100;
                     edgeListIndexBack--;
                     *it = -9999;
                     numFound++;
@@ -312,6 +313,21 @@ int source = 0;
 Enqueue(Q, source); //push into quene and set found.
 Found[source] = 1;
 
+vector<int> flow;
+vector<int> Cap;
+vector<int> Space;
+vector<vector<int>> flowCapSpace;
+
+for (int i = 0; i < sizeEdgeList; i++)
+    {
+        Cap.push_back(edgeCap[i]);
+        Space.push_back(edgeCap[i]);
+        flow.push_back(0);
+    }
+flowCapSpace.push_back(flow);
+flowCapSpace.push_back(Cap);
+flowCapSpace.push_back(Space);
+
 int * parentOut = BFS( Q,  Found, FV, V, edgeList, E);
 
 cout << "BFS ran successfully!!!" << endl;
@@ -330,9 +346,38 @@ cout << "backtrace ran successfully!!!" << endl;
 cout << "Path Size: " << pathInfo[1][0] << endl;
 cout << "Path: " << endl;
 for(int i=0; i < pathInfo[0].size(); i++) {
-    cout << pathInfo[0][i] << "  ";
+    cout << pathInfo[0][i] << endl;
     }
-cout << endl;
+
+vector<int> edgesOut = edgePath(pathInfo[0], FV, edgeList);
+
+vector<int> newFlow;
+vector<int> newCap;
+vector<int> newSpace;
+
+for(int i=0; i < edgesOut.size(); i++) {
+    cout << "Edge: " << edgesOut[i] << ", ";
+    newFlow.push_back(flow[edgesOut[i]]);
+    cout << "Flow: " << flow[edgesOut[i]] << ", ";
+    newCap.push_back(Cap[edgesOut[i]]);
+    cout << "Cap: " << Cap[edgesOut[i]] << ", ";
+    newSpace.push_back(Space[edgesOut[i]]);
+    cout << "Space: " << Space[edgesOut[i]] << endl;
+    }
+
+//int minCap = *min_element(newCap.begin(), newCap.end());
+int minSpace =*min_element(newSpace.begin(), newSpace.end());
+
+for(int i=0; i < edgesOut.size(); i++) {
+    cout << "Edge: " << edgesOut[i] << ", ";
+    flow[edgesOut[i]] = flow[edgesOut[i]] + minSpace;
+    cout << "Flow: " << flow[edgesOut[i]] << ", ";
+    cout << "Cap: " << Cap[edgesOut[i]] << ", ";
+    Space[edgesOut[i]] = Space[edgesOut[i]] - minSpace;
+    cout << "Space: " << Space[edgesOut[i]] << endl;
+    }
+
+
 
 return 0;
 
@@ -504,27 +549,6 @@ int  Dequeue(Queue *Q)
     }
 }
 
-void PrintAdjacencyListFormat(int *FirstVertex, int V, int *EdgeList,int E)
-  {
-    int v;
-    int e;
-    cout << "V = " << V << "  E = " <<E <<endl;
-    for( v = 0; v < V; v++) {
-        cout << endl;
-        cout << v  << ": ";
-        for(e = FirstVertex[v]; e < FirstVertex[v+1]; e++)
-            cout << EdgeList[e]<< "-> ";
-            cout <<"nil";
-      }
-
-    cout << endl;
-    cout << v  << " : ";
-    cout << EdgeList[e]  << " That's Edge List  nil  Folks " << endl;
-
-    return;
-
-  }
-
 vector<vector<int>> backtrace(int node, int * parent) {
     vector<vector<int>> pL;
     vector<int> path;
@@ -540,7 +564,7 @@ vector<vector<int>> backtrace(int node, int * parent) {
 		iter2++;
 		}
 
-    pathLength.push_back(iter2);
+    pathLength.push_back(iter2 + 1);
 
 	int newNode = node;
 	path.push_back(newNode);
@@ -555,10 +579,37 @@ vector<vector<int>> backtrace(int node, int * parent) {
 		path.push_back(newNode);
 		}
 
+    path.push_back(0);
     pL.push_back(path);
     pL.push_back(pathLength);
 
     return pL;
+}
+
+vector<int> edgePath(vector<int>& pathInfo, int * FV, int * edgeList) {
+
+vector<int> edgesOut;
+
+for (int i = (pathInfo.size() - 1); i > 0 ; i--)
+{
+    cout << "i = " << i << " > " << "0" << endl;
+	int j = pathInfo[i];
+	cout << "j = " << j << endl;
+	for (int k = FV[j]; k < FV[j+1]; k++)
+		{
+		    cout << "k = " << k << " < " << FV[j+1] << endl;
+			if (edgeList[k] == pathInfo[i-1])
+			{
+			    cout << "Edge " << k << " == " << (pathInfo[i-1]) << endl;
+				edgesOut.push_back(k);
+				break;
+			}
+
+        }
+}
+
+return edgesOut;
+
 }
 
 
