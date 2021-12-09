@@ -18,7 +18,7 @@
 using namespace std;
 using namespace cv;
 
-void edmondsKarp(int V, int E, bool success, int sinkInd, int * bfsPtr, int * FV, int * edgeList,
+int * edmondsKarp(int V, int E, bool success, int sinkInd, int * bfsPtr, int * FV, int * edgeList,
                  vector<int>& flow, vector<int>& Cap, vector<int>& Space) {
 
 	vector<int> tempFlow;
@@ -40,7 +40,7 @@ void edmondsKarp(int V, int E, bool success, int sinkInd, int * bfsPtr, int * FV
         else {
             (*bfsPtr)++;
             cout << "---BFS " << (*bfsPtr) << " failed---" << endl;
-            break;
+            return parentOut;
             }
 		pathInfo = backtrace(sinkInd, parentOut);
 		edgesOut = edgePath(pathInfo[0], FV, edgeList);
@@ -71,7 +71,7 @@ void edmondsKarp(int V, int E, bool success, int sinkInd, int * bfsPtr, int * FV
 		pathInfo.clear();
 		edgesOut.clear();
 		}
-		return;
+		//return parenOut;
 }
 
 #endif

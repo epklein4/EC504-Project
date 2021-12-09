@@ -31,7 +31,7 @@ int * BFS(int * FirstVertex, int V, int * EdgeList, int E, vector<int>& space, b
     static int CountDequeue = 0;
 
     int * parent = new int[V + 1];
-    fill_n(parent, V, -1);
+    fill_n(parent, (V+1), -1);
 
     while(true) {
         if (Q->size == 0) {

@@ -126,7 +126,30 @@ int main()
                 FV, edgeList, edgeCap, bgfgNull, adjMat);
 
     //run Edmonds-Karp
-    edmondsKarp(V, E, success, sinkInd, bfsPtr, FV, edgeList, flow, Cap, Space);
+    int * segmentA;
+    segmentA = edmondsKarp(V, E, success, sinkInd, bfsPtr, FV, edgeList, flow, Cap, Space);
+
+    Mat newIm;
+    newIm = Mat::zeros(newDim, newDim, CV_8UC1);
+
+    for (int i = 1; i <= N; i++)
+    {
+        int index = i - 1;
+        int x = index % newWidth;
+        int y = (index - x) / newWidth;
+        if (segmentA[i] != -1)  {
+            newIm.at<uchar>(y, x) = 255;
+        }
+        else {
+            newIm.at<uchar>(y, x) = 0;
+        }
+    }
+
+    namedWindow( "newImg", WINDOW_AUTOSIZE );
+    imshow( "newImg", newIm );
+    waitKey(0);
+    destroyAllWindows();
+
 
 return 0;
 
