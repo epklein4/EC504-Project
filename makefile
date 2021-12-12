@@ -1,4 +1,4 @@
-BASE_OBJS = main.o
+BASE_OBJS = main.o circles.o
 
 SRC_PATH = src
 
