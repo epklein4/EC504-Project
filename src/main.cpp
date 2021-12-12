@@ -17,7 +17,7 @@
 using namespace std;
 using namespace cv;
 
-#define PERFORMANCE_TEST 0
+#define PERFORMANCE_TEST 1
 
 void CallBackFunc(int event, int x, int y, int flags, void *userdata);
 
@@ -57,25 +57,23 @@ int main()
     cout << "The image will be squared. Input new width: ";
     cin >> newDim;
     N = newDim * newDim;
+    resize(srcIm, resizedIm, Size(newDim, newDim));
     newHeight = resizedIm.size().height;
     newWidth = resizedIm.size().width;
-    resize(srcIm, resizedIm, Size(newDim, newDim));
     cout << "Dimensions of resized image: " << newHeight << " x " << newWidth << endl;
 #endif
     //
 #if PERFORMANCE_TEST == 1
     ofstream myfile;
     myfile.open("performance.txt");
-    for (int pix = 40; pix < 150; pix += 15)
+    for (int pix = 40; pix <= 200; pix += 20)
     {
         numBFS = 0;
         bfsPtr = &numBFS;
-        resize(srcIm, resizedIm, Size(i, i));
         N = pix * pix;
+        resize(srcIm, resizedIm, Size(pix, pix));
         newHeight = resizedIm.size().height;
         newWidth = resizedIm.size().width;
-        // Start timer
-        auto start = chrono::high_resolution_clock::now();
 #endif
 
         //here we mange the mouse-clicking part
@@ -102,6 +100,11 @@ int main()
         {
             destroyAllWindows();
         }
+
+#if PERFORMANCE_TEST == 1
+        // Start timer
+        auto start = chrono::high_resolution_clock::now();
+#endif
 
         /////////////////////////////////////////////////////
 
@@ -152,6 +155,7 @@ int main()
         int *segmentA;
         segmentA = edmondsKarp(V, E, success, sinkInd, bfsPtr, FV, edgeList, flow, Cap, Space);
 
+#if PERFORMANCE_TEST == 0
         Mat newIm;
         newIm = Mat::zeros(newDim, newDim, CV_8UC1);
 
@@ -174,13 +178,17 @@ int main()
         imshow("newImg", newIm);
         waitKey(0);
         destroyAllWindows();
+#endif
 
 #if PERFORMANCE_TEST == 1
         // End Timer and calculate time
         auto end = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
         cout << "Time taken by Edmonds-Karp: " << duration.count() << " microseconds" << endl;
-        myfile << pix << " " << duration.count() << endl;
+        if(pix != 40)
+        {
+            myfile << pix << " " << E << " " << duration.count() << endl;
+        }
     }
     myfile.close();
 #endif
