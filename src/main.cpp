@@ -64,12 +64,14 @@ int main()
 #endif
     //
 #if PERFORMANCE_TEST == 1
-    for (int i = 40; i < 150; i += 15)
+    ofstream myfile;
+    myfile.open("performance.txt");
+    for (int pix = 40; pix < 150; pix += 15)
     {
         numBFS = 0;
         bfsPtr = &numBFS;
         resize(srcIm, resizedIm, Size(i, i));
-        N = i * i;
+        N = pix * pix;
         newHeight = resizedIm.size().height;
         newWidth = resizedIm.size().width;
         // Start timer
@@ -178,7 +180,9 @@ int main()
         auto end = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
         cout << "Time taken by Edmonds-Karp: " << duration.count() << " microseconds" << endl;
+        myfile << pix << " " << duration.count() << endl;
     }
+    myfile.close();
 #endif
 
     return 0;
