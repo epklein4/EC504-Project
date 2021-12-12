@@ -17,7 +17,7 @@
 using namespace std;
 using namespace cv;
 
-#define PERFORMANCE_TEST 1
+#define PERFORMANCE_TEST 0
 
 void CallBackFunc(int event, int x, int y, int flags, void *userdata);
 
